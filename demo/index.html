@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Allcaps Font Demo</title>
+    <style>
+      @font-face {
+        font-family: "Allcaps";
+        src: url("/squareo.ttf") format("truetype");
+      }
+      body {
+        font-family: "Allcaps", sans-serif;
+        font-size: 3rem;
+        max-width: 720px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+      }
+      h1 {
+        font-size: 4rem;
+        font-weight: 500;
+        background: black;
+        color: white;
+        padding: 0.25em 1rem 0.25em max(1rem, calc(50vw - 359px));
+        width: 100vw;
+        margin: -2rem 0 0 calc(50% - 50vw);
+        box-sizing: border-box;
+      }
+      [contenteditable]:focus {
+        outline: 2px solid #4af;
+        outline-offset: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Squareo demo</h1>
+    <p>javascript dreamfont</p>
+    <p>The quick brown fox jumps over the lazy dog</p>
+    <p>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
+      tempor incididunt ut labore et dolore magna aliqua.
+    </p>
+    <p contenteditable="true">try me</p>
+  </body>
+</html>

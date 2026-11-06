@@ -1,0 +1,161 @@
+#!/usr/bin/env fontforge
+#
+# build.pe — build an all-caps font from the SVG glyphs in this folder.
+#
+# Usage:
+#   fontforge -script build.pe
+#
+# Produces allcaps.sfd (editable source) and squareo.ttf (font).
+#
+# All-caps: each uppercase SVG is imported into BOTH the uppercase slot
+# and the lowercase slot, so "a" and "A" (etc.) are identical shapes.
+
+import os
+
+EM = 1000          # font units per em
+ASCENT = 750       # distance from baseline to cap height
+DESCENT = 250      # distance below baseline
+SIDE = 50          # default horizontal side bearing
+
+# FontForge's SVG import already scales the 30-unit SVG art onto the
+# 1000-unit em square. We only need to slide it so it sits on the baseline
+# with a reasonable side bearing, not re-scale it.
+
+# Unicode mapping: name -> (uppercase codepoint, lowercase codepoint or None)
+letters = {
+    "A": (0x0041, 0x0061), "B": (0x0042, 0x0062), "C": (0x0043, 0x0063),
+    "D": (0x0044, 0x0064), "E": (0x0045, 0x0065), "F": (0x0046, 0x0066),
+    "G": (0x0047, 0x0067), "H": (0x0048, 0x0068), "I": (0x0049, 0x0069),
+    "J": (0x004A, 0x006A), "K": (0x004B, 0x006B), "L": (0x004C, 0x006C),
+    "M": (0x004D, 0x006D), "N": (0x004E, 0x006E), "O": (0x004F, 0x006F),
+    "P": (0x0050, 0x0070), "Q": (0x0051, 0x0071), "R": (0x0052, 0x0072),
+    "S": (0x0053, 0x0073), "T": (0x0054, 0x0074), "U": (0x0055, 0x0075),
+    "V": (0x0056, 0x0076), "W": (0x0057, 0x0077), "X": (0x0058, 0x0078),
+    "Y": (0x0059, 0x0079), "Z": (0x005A, 0x007A),
+}
+
+# punctuation: name -> codepoint
+punctuation = {
+    "exclamation": 0x0021,
+    "hyphen":     0x002D,
+    "comma":    0x002C,
+    "period":   0x002E,
+    "question": 0x003F,
+}
+
+SPACE_WIDTH = None   # set below: half the average letter advance width
+font = fontforge.font()
+font.encoding = "UnicodeFull"
+font.em = EM
+font.ascent = ASCENT
+font.descent = DESCENT
+
+# name the font
+font.familyname = "AllCaps"
+font.fontname   = "AllCaps-Regular"
+font.fullname   = "AllCaps Regular"
+font.version    = "1.0"
+font.copyright  = ""
+
+here = os.path.dirname(os.path.abspath(__file__))
+missing = []
+VB_LETTER = None  # viewBox size of a letter SVG (full art unit scale); set below
+SCALE = 0.75   # uniform viewBox: cap height fills the em, scale to ascent
+
+def vb_size(path):
+    """Extract the viewBox side length from an SVG (all are square)."""
+    import re
+    with open(path) as fh:
+        m = re.search(r'viewBox="([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)"', fh.read())
+    return float(m.group(3))
+
+def art_scale(path):
+    """Extra factor so punctuation's smaller viewBoxes map to the same
+    art-unit scale as the letters (FontForge scales by 1000/viewBox size)."""
+    return vb_size(path) / VB_LETTER
+
+VB_LETTER = vb_size(os.path.join(here, "A.svg"))  # reference art-unit scale
+
+def import_glyph(codepoint, path, s=SCALE, width=None, vcenter=None):
+    """Import an SVG into the glyph at codepoint, then position it.
+    vcenter: if set, center the art vertically at this height (e.g. hyphen).
+    """
+    glyph = font.createChar(codepoint)
+    glyph.importOutlines(path)
+    # All SVGs share one uniform viewBox (split_glyphs.py), so FontForge maps
+    # them onto the 1000-unit em at the same size; scale down once so cap
+    # height = ASCENT (750). Punctuation keeps its correct small size.
+    glyph.transform((s, 0, 0, s, 0, 0))
+    (xmin, ymin, xmax, ymax) = glyph.boundingBox()
+    # Shift: bring the visual left edge to SIDE, and the visual bottom
+    # down onto the baseline 0.
+    dx = SIDE - xmin
+    dy = (-ymin) if vcenter is None else (vcenter - (ymin + ymax) / 2)
+    glyph.transform((1, 0, 0, 1, dx, dy))
+    if width is not None:
+        # fixed advance (e.g. half-width punctuation), glyph centered in it
+        glyph.width = width
+        cx = (xmin + xmax) / 2 + dx
+        glyph.transform((1, 0, 0, 1, width / 2 - cx, 0))
+        glyph.left_side_bearing = int(SIDE / 2)
+        glyph.width = width
+    else:
+        glyph.width = int((xmax - xmin) + SIDE * 2)
+        glyph.left_side_bearing = int(SIDE)
+        glyph.right_side_bearing = int(SIDE)
+
+# letters -> both upper and lower slots
+for name, (upper, lower) in sorted(letters.items()):
+    svg = os.path.join(here, name + ".svg")
+    if not os.path.exists(svg):
+        missing.append(name + ".svg")
+        continue
+    import_glyph(upper, svg, s=SCALE * art_scale(svg))
+    import_glyph(lower, svg, s=SCALE * art_scale(svg))
+
+avg_width = sum(font[cp].width for cp in [v for (u, v) in letters.values()]) / len(letters)
+HALF = int(avg_width / 2)
+HALF_WIDTH_PUNCT = {"hyphen", "question"}
+
+# punctuation -> single slot, half-width advance, centered
+for name, cp in sorted(punctuation.items(), key=lambda kv: kv[1]):
+    svg = os.path.join(here, name + ".svg")
+    if not os.path.exists(svg):
+        missing.append(name + ".svg")
+        continue
+    if name in HALF_WIDTH_PUNCT:
+        import_glyph(cp, svg, s=SCALE * art_scale(svg), width=HALF,
+                    vcenter=ASCENT / 2 if name == "hyphen" else None)
+    else:
+        # narrow glyphs (! , .): advance fits the art + normal side bearings
+        import_glyph(cp, svg, s=SCALE * art_scale(svg))
+
+# space: empty glyph, width = half the average letter advance width
+space = font.createChar(0x0020)
+space.width = HALF
+
+# Kerning: A and V slant at 45 degrees. In "AV" their faces meet, so the
+# normal fixed spacing is fine. In "VA" both faces have the same slant, so
+# the visual gap is much bigger -- pull the pair together by 0.75 char widths.
+KERN = int(-0.75 * avg_width)
+# documented FontForge form: 3-arg addPosSub(subtable, other-glyph, kern)
+font.addLookup("Kern", "gpos_pair", 2, (("kern", (("latn", ("dflt",)),)),))
+font.addLookupSubtable("Kern", "kern-1")
+for first in (0x0056, 0x0076):        # V, v  (lowercase slots are the same shape)
+    for second in (0x0041, 0x0061):  # A, a
+        font[first].addPosSub("kern-1", font[second].glyphname, KERN)
+print("Kerning V/A pairs by %d" % KERN)
+
+if missing:
+    print("WARNING: missing SVG files (glyphs skipped):")
+    for m in missing:
+        print("  " + m)
+
+sfd = os.path.join(here, "allcaps.sfd")
+ttf = os.path.join(here, "squareo.ttf")
+
+font.save(sfd)
+font.generate(ttf)
+
+print("Saved %s" % sfd)
+print("Generated %s" % ttf)
