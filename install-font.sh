@@ -4,7 +4,7 @@ set -euo pipefail
 
 here="$(cd "$(dirname "$0")" && pwd)"
 FF="${FONTFORGE:-$HOME/Applications/FontForge.AppImage}"
-SRC="${SRC:-$here/../square-font.svg}"
+SRC="${SRC:-$here/square-font.svg}"
 
 python3 "$here/split_glyphs.py" --src "$SRC" --out "$here"
 "$FF" -lang=py -script "$here/build.pe"
