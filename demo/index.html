@@ -1,44 +1,227 @@
 <!doctype html>
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>Allcaps Font Demo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Squareo — Specimen A</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
     <style>
       @font-face {
-        font-family: "Allcaps";
+        font-family: "Squareo";
         src: url("/squareo.ttf") format("truetype");
       }
+      :root {
+        --ink: #0a0a0a;
+        --paper: #f4f1ea;
+        --accent: #ff6a1f;
+        --line: #0a0a0a;
+        --display: "Squareo", sans-serif;
+        --sans: "Space Grotesk", system-ui, sans-serif;
+        --mono: "JetBrains Mono", ui-monospace, monospace;
+      }
+      * { box-sizing: border-box; }
       body {
-        font-family: "Allcaps", sans-serif;
-        font-size: 3rem;
-        max-width: 720px;
-        margin: 2rem auto;
-        padding: 0 1rem;
+        margin: 0;
+        background: var(--paper);
+        color: var(--ink);
+        font: 400 1.125rem/1.6 var(--sans);
       }
-      h1 {
-        font-size: 4rem;
-        font-weight: 500;
-        background: black;
-        color: white;
-        padding: 0.25em 1rem 0.25em max(1rem, calc(50vw - 359px));
-        width: 100vw;
-        margin: -2rem 0 0 calc(50% - 50vw);
-        box-sizing: border-box;
+      .wrap { max-width: 1100px; margin: 0 auto; padding: 0 1.5rem; }
+      .display { font-family: var(--display); font-weight: 400; line-height: 1.05; margin: 0; }
+      .label {
+        font: 700 0.75rem/1 var(--mono);
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
       }
-      [contenteditable]:focus {
-        outline: 2px solid #4af;
-        outline-offset: 4px;
+
+      /* top bar */
+      header.bar { background: var(--ink); color: var(--paper); }
+      header.bar .wrap {
+        display: flex; justify-content: space-between; align-items: center;
+        padding-top: 1rem; padding-bottom: 1rem;
       }
+      header.bar .display { font-size: 2rem; }
+      header.bar nav { display: flex; gap: 1.5rem; }
+      header.bar a { color: inherit; text-decoration: none; }
+      header.bar a:hover { color: var(--accent); }
+
+      /* hero */
+      .hero { padding: 4rem 0 3rem; border-bottom: 2px solid var(--line); }
+      .hero .display { font-size: clamp(3.5rem, 15.5vw, 12.5rem); letter-spacing: -0.02em; }
+      .hero .meta {
+        display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem;
+        margin-top: 2.5rem; border-top: 2px solid var(--line); padding-top: 1rem;
+      }
+      .hero .meta p { margin: 0.5rem 0 0; }
+      @media (max-width: 700px) { .hero .meta { grid-template-columns: 1fr; } }
+
+      /* glyph grid */
+      section { padding: 4rem 0; border-bottom: 2px solid var(--line); }
+      section > .wrap > .label { display: flex; justify-content: space-between; margin-bottom: 2rem; }
+      .grid {
+        display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+        border-top: 2px solid var(--line); border-left: 2px solid var(--line);
+      }
+      .grid div {
+        aspect-ratio: 1; display: grid; place-items: center;
+        font: 400 4rem/1 var(--display);
+        border-right: 2px solid var(--line); border-bottom: 2px solid var(--line);
+        transition: background 0.15s, color 0.15s;
+        user-select: none;
+        -webkit-user-select: none;
+      }
+      .grid div:hover { background: var(--accent); }
+      .grid div.inv { background: var(--ink); color: var(--paper); }
+      .grid div.inv:hover { background: var(--accent); color: var(--ink); }
+
+      /* contrast pairing */
+      .pair { display: grid; grid-template-columns: 1.2fr 1fr; gap: 3rem; align-items: start; }
+      @media (max-width: 800px) { .pair { grid-template-columns: 1fr; } }
+      .pair .display { font-size: clamp(2.5rem, 7vw, 5rem); }
+      .pair p { margin: 0 0 1rem; max-width: 52ch; }
+      .pair .lead { font-size: 1.5rem; font-weight: 500; line-height: 1.35; }
+      code, .mono { font-family: var(--mono); font-size: 0.9em; }
+      .tag {
+        display: inline-block; background: var(--ink); color: var(--paper);
+        padding: 0.25rem 0.6rem; font: 700 0.75rem/1.2 var(--mono); letter-spacing: 0.1em;
+      }
+
+      /* size ladder */
+      .ladder > div {
+        display: flex; align-items: baseline; gap: 1.5rem;
+        border-bottom: 1px solid var(--line); padding: 0.75rem 0; overflow: hidden;
+      }
+      .ladder .label { flex: 0 0 4rem; }
+      .ladder .display { white-space: nowrap; }
+
+      /* accent block */
+      .block { background: var(--accent); }
+      .block .display { font-size: clamp(2rem, 8vw, 6.5rem); }
+
+      /* tester */
+      .tester .controls { display: flex; gap: 1rem; align-items: center; margin-bottom: 1rem; }
+      .tester input[type="range"] { accent-color: var(--accent); width: 240px; }
+      #try {
+        font: 400 6rem/1.1 var(--display);
+        min-height: 1.2em; outline: none; word-break: break-all;
+        border: 2px dashed var(--line); padding: 1rem;
+      }
+      #try:focus { border-style: solid; background: #fff; }
+
+      footer { padding: 2rem 0 4rem; }
+      footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
+      footer a { color: inherit; }
     </style>
   </head>
   <body>
-    <h1>Squareo demo</h1>
-    <p>javascript dreamfont</p>
-    <p>The quick brown fox jumps over the lazy dog</p>
-    <p>
-      Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
-      tempor incididunt ut labore et dolore magna aliqua.
-    </p>
-    <p contenteditable="true">try me</p>
+    <header class="bar">
+      <div class="wrap">
+        <span class="display">Squareo</span>
+        <nav class="label">
+          <a href="#glyphs">Glyphs</a>
+          <a href="#pairing">Pairing</a>
+          <a href="#try">Try</a>
+        </nav>
+      </div>
+    </header>
+
+    <div class="wrap hero">
+      <h1 class="display">Squareo</h1>
+      <div class="meta">
+        <div>
+          <span class="label">01 / Concept</span>
+          <p>Every letter is a square cut by a diagonal. Fill one half, outline the other.</p>
+        </div>
+        <div>
+          <span class="label">02 / Use</span>
+          <p>Headlines, logos, posters. Caps only, so keep it big and give it room.</p>
+        </div>
+        <div>
+          <span class="label">03 / Set</span>
+          <p class="mono">A–Z&nbsp; ! ? , . -</p>
+        </div>
+      </div>
+    </div>
+
+    <section id="glyphs">
+      <div class="wrap">
+        <div class="label"><span>The alphabet</span><span>26 + 5 glyphs</span></div>
+        <div class="grid" id="grid"></div>
+      </div>
+    </section>
+
+    <section id="pairing">
+      <div class="wrap">
+        <div class="label"><span>In context</span><span>Squareo + Space Grotesk + JetBrains Mono</span></div>
+        <div class="pair">
+          <h2 class="display">Geometry you can read.</h2>
+          <div>
+            <p class="lead">A display face this strict wants a quiet neighbour.</p>
+            <p>
+              Squareo does the shouting: titles, numerals, anything you want people to
+              stop and look at. Set the body in a neutral grotesque so the angular
+              forms keep all the attention, and bring in a mono for the small print.
+            </p>
+            <p><span class="tag">TIP</span> <code>font-family: "Squareo"</code> for h1 only. Never below 24px.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="wrap">
+        <p class="display">The quick brown fox jumps over the lazy dog!</p>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <div class="label"><span>Scale</span><span>Holds up from 24px to 240px</span></div>
+        <div class="ladder">
+          <div><span class="label">24</span><span class="display" style="font-size:24px">Pack my box with five dozen liquor jugs</span></div>
+          <div><span class="label">48</span><span class="display" style="font-size:48px">Sphinx of black quartz</span></div>
+          <div><span class="label">96</span><span class="display" style="font-size:96px">Judge my vow</span></div>
+          <div><span class="label">160</span><span class="display" style="font-size:160px">Waltz!</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="tester">
+      <div class="wrap">
+        <div class="label"><span>Type something</span><span>Click the box</span></div>
+        <div class="controls">
+          <span class="label">Size</span>
+          <input id="size" type="range" min="24" max="200" value="96" />
+        </div>
+        <div id="try" contenteditable="true" spellcheck="false">Try me</div>
+      </div>
+    </section>
+
+    <footer>
+      <div class="wrap label">
+        <span>Squareo — v1</span>
+        <span>Display: Squareo · Text: Space Grotesk · Mono: JetBrains Mono</span>
+      </div>
+    </footer>
+
+    <script>
+      const grid = document.getElementById("grid");
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZ!?,.-".split("").forEach((c, i) => {
+        const d = document.createElement("div");
+        d.textContent = c;
+        if ((i + Math.floor(i / 6)) % 5 === 0) d.className = "inv";
+        grid.appendChild(d);
+      });
+      const t = document.getElementById("try");
+      document.getElementById("size").addEventListener("input", (e) => {
+        t.style.fontSize = e.target.value + "px";
+      });
+      t.style.fontSize = "96px";
+    </script>
   </body>
 </html>
