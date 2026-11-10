@@ -96,7 +96,7 @@
                 justify-content: center;
             }
             .hero .display {
-                font-size: clamp(3.5rem, 15.5vw, 11.5rem);
+                font-size: min(10vw, 7.2rem);
                 letter-spacing: -0.02em;
             }
             .hero .tagline {
@@ -105,16 +105,9 @@
                 max-width: 30ch;
             }
             .hero .scroll {
-                align-self: flex-start;
-                margin: 0;
-                padding: 0 1.5rem;
+                margin: 1rem 0 0;
                 color: inherit;
                 text-decoration: none;
-            }
-            @media (min-width: 1148px) {
-                .hero .scroll {
-                    margin-left: calc((100vw - 1100px) / 2);
-                }
             }
             .hero .scroll:hover {
                 color: var(--accent);
@@ -326,15 +319,9 @@
                     gap: 1rem;
                     font-size: 0.7rem;
                 }
-                .hero .display {
-                    font-size: 14.5vw;
-                }
                 .hero .tagline {
                     font-size: 1.1rem;
                     margin-top: 1rem;
-                }
-                .hero .scroll {
-                    padding: 0 1rem;
                 }
                 .stack {
                     gap: 1.5rem;
@@ -406,9 +393,9 @@
         <div class="hero">
             <div class="wrap">
                 <h1 class="display">captivating geometry</h1>
-                <p class="tagline">Squareo - my first font</p>
+                <p class="tagline">A display font built from squares.</p>
+                <p class="scroll label">Poster / Headings / Quotes</p>
             </div>
-            <p class="scroll label">Poster / Headings / Quotes</p>
         </div>
 
         <section class="about">
@@ -416,7 +403,10 @@
                 <div class="stack">
                     <div>
                         <span class="label">01 / Concept</span>
-                        <p>My first font. Purely geometric in a strict grid.</p>
+                        <p>
+                            Every letter is built from squares on one strict
+                            grid.
+                        </p>
                     </div>
                     <div class="quote why">
                         <p class="display">
@@ -427,8 +417,8 @@
                     <div>
                         <span class="label">02 / Pattern</span>
                         <p>
-                            lines of text to turn into a busy geometric pattern
-                            that becomes almost decorative
+                            Stack a few lines and the letters lock together into
+                            a dense geometric pattern. Almost decorative.
                         </p>
                     </div>
                     <div class="quote">
@@ -439,15 +429,15 @@
                     <div>
                         <span class="label">03 / Use</span>
                         <p>
-                            Vaguely readable, an aesthetic font that is not
-                            purely abstract
+                            Readable if you squint. Somewhere between a typeface
+                            and a pattern.
                         </p>
                     </div>
                     <div>
                         <span class="label">04 / Spacing</span>
                         <p>
-                            Monospaced apart from a narrow I, with custom
-                            kerning for AV.
+                            Monospaced, except for a narrow I. AV gets its own
+                            kerning.
                         </p>
                     </div>
                     <div class="set">
@@ -475,8 +465,7 @@
                 </div>
                 <div class="pair stacked">
                     <h2 class="display">
-                        I started out with nothing, and i still have most of it
-                        left
+                        The quick brown fox jumps over the lazy dog
                     </h2>
                     <div>
                         <p class="lead">
@@ -501,7 +490,7 @@
         <section class="block">
             <div class="wrap">
                 <p class="display">
-                    The quick brown fox jumps over the lazy dog!
+                    I started out with nothing, and i still have most of it left
                 </p>
             </div>
         </section>
@@ -559,32 +548,14 @@
             </div>
         </section>
 
-        <section>
-            <div class="wrap">
-                <div class="label">
-                    <span>How it's made</span><span>Open source</span>
-                </div>
-                <div class="pair">
-                    <h2 class="display">Squares, drawn by hand.</h2>
-                    <div>
-                        <p>Each glyph is an SVG drawn in Inkscape.</p>
-                        <p>
-                            A FontForge script turns the SVGs into a font and
-                            adds the AV kerning.
-                        </p>
-                        <p>
-                            <a href="https://github.com/Britnell/squareo"
-                                >github.com/Britnell/squareo</a
-                            >
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
         <footer>
             <div class="wrap label">
-                <span>Squareo — my first font</span>
+                <span
+                    >Squareo — my first font ·
+                    <a href="https://github.com/Britnell/squareo"
+                        >GitHub</a
+                    ></span
+                >
                 <span
                     >Display: Squareo · Text: Space Grotesk · Mono: JetBrains
                     Mono</span
