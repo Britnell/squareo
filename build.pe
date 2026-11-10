@@ -41,9 +41,19 @@ punctuation = {
     "apostrophe": 0x0027,
     "hyphen":     0x002D,
     "comma":    0x002C,
+    "less":      0x003C,
+    "greater":   0x003E,
+    "plus":      0x002B,
+    "equal":     0x003D,
+    "slash":     0x002F,
+    "backslash": 0x005C,
     "period":   0x002E,
     "question": 0x003F,
 }
+digits = {"zero": 0x0030, "one": 0x0031, "two": 0x0032, "three": 0x0033,
+          "four": 0x0034, "five": 0x0035, "six": 0x0036, "seven": 0x0037,
+          "eight": 0x0038, "nine": 0x0039}
+
 SPACE_WIDTH = None   # set below: half the average letter advance width
 font = fontforge.font()
 font.encoding = "UnicodeFull"
@@ -143,9 +153,27 @@ for name, cp in sorted(punctuation.items(), key=lambda kv: kv[1]):
     elif name in ("apostrophe", "quotedbl"):
         # hanging punctuation: top edge at cap height, advance like comma
         import_glyph(cp, svg, s=SCALE * art_scale(svg), top=True)
+    elif name in ("less", "greater"):
+        # chevrons: narrow advance, vertically centered at mid height
+        import_glyph(cp, svg, s=SCALE * art_scale(svg), vcenter=ASCENT / 2)
+    elif name in ("plus", "equal"):
+        # math signs: half-width advance, vertically centered like hyphen
+        import_glyph(cp, svg, s=SCALE * art_scale(svg), width=HALF,
+                     vcenter=ASCENT / 2)
+    elif name in ("slash", "backslash"):
+        # diagonals: cap-height on the baseline, half-width advance
+        import_glyph(cp, svg, s=SCALE * art_scale(svg), width=HALF)
     else:
         # narrow glyphs (! , .): advance fits the art + normal side bearings
         import_glyph(cp, svg, s=SCALE * art_scale(svg))
+
+# digits: half-width advance like + and -, full cap height on the baseline
+for name, cp in sorted(digits.items(), key=lambda kv: kv[1]):
+    svg = os.path.join(here, name + ".svg")
+    if not os.path.exists(svg):
+        missing.append(name + ".svg")
+        continue
+    import_glyph(cp, svg, s=SCALE * art_scale(svg), width=HALF)
 
 # smart quotes: closing quotes (’ ”) reuse the ' / " shapes as-is;
 # opening quotes (‘ “) are the same shapes mirrored horizontally.

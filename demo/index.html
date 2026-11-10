@@ -395,7 +395,7 @@
 
         <div class="hero">
             <div class="wrap">
-                <h1 class="display">geometric squared exponent</h1>
+                <h1 class="display">geometric squared exponential potential</h1>
                 <p class="tagline">Squareo - my first font</p>
                 <p class="scroll label">Poster / Headings / Quotes</p>
             </div>
@@ -442,7 +442,7 @@
                     </div>
                     <div class="set">
                         <span class="label">05 / Set</span>
-                        <p class="mono">A–Z&nbsp; ! ? , . - ‘ ’ “ ”</p>
+                        <p class="mono">A–Z, 0–9 + basic punctuation</p>
                     </div>
                 </div>
             </div>
@@ -451,7 +451,7 @@
         <section id="glyphs">
             <div class="wrap">
                 <div class="label">
-                    <span>The alphabet</span><span>37 glyphs</span>
+                    <span>The alphabet &amp; digits</span><span>50 glyphs</span>
                 </div>
                 <div class="grid" id="grid"></div>
             </div>
@@ -565,12 +565,14 @@
 
         <script>
             const grid = document.getElementById("grid");
-            "ABCDEFGHIJKLMNOPQRSTUVWXYZ!?,.-'"‘’“”".split("").forEach((c, i) => {
-                const d = document.createElement("div");
-                d.textContent = c;
-                if ((i + Math.floor(i / 6)) % 5 === 0) d.className = "inv";
-                grid.appendChild(d);
-            });
+            `ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789<>!?,.+-='‘’“”`
+                .split("")
+                .forEach((c, i) => {
+                    const d = document.createElement("div");
+                    d.textContent = c;
+                    if ((i + Math.floor(i / 6)) % 5 === 0) d.className = "inv";
+                    grid.appendChild(d);
+                });
             const t = document.getElementById("try");
             document.getElementById("size").addEventListener("input", (e) => {
                 t.style.fontSize = e.target.value + "px";

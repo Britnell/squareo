@@ -27,8 +27,15 @@ import sys
 import xml.etree.ElementTree as ET
 
 LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-PUNCT = ['.', ',', '?', '!', '-', "'", '"']
-FILE_FOR = {'.': 'period', ',': 'comma', '?': 'question', '!': 'exclamation', '-': 'hyphen', "'": 'apostrophe', '"': 'quotedbl'}
+PUNCT_ROW1 = list('.,?!\'"<>')   # first row below the letters (y ~205..250)
+PUNCT_ROW2 = list('-+=/\\')       # new stroke row underneath (y ~250+)
+FILE_FOR = {'.': 'period', ',': 'comma', '?': 'question', '!': 'exclamation', '-': 'hyphen',
+            "'": 'apostrophe', '"': 'quotedbl', '<': 'less', '>': 'greater',
+            '+': 'plus', '=': 'equal', '/': 'slash', '\\': 'backslash',
+            '0': 'zero', '1': 'one', '2': 'two', '3': 'three', '4': 'four',
+            '5': 'five', '6': 'six', '7': 'seven', '8': 'eight', '9': 'nine'}
+DIGITS = '1234567890'    # reading order of the digit sheet: top row 1-5, bottom 6-0
+DIGIT_GROUP = 'g378'    # second glyph set: stroke-to-path'd digits, one path each
 
 NUM = r'-?\d*\.?\d+(?:[eE][-+]?\d+)?'
 TOKEN = re.compile(r'[MmLlHhVvCcSsQqTtAaZz]|' + NUM)
@@ -163,17 +170,23 @@ def glyph_bboxes(glyphs):
 
 
 PUNCT_ROW_Y = 205.0   # punctuation sits on its own last row below the letters
+STROKE_ROW_Y = 250.0  # the -+= stroke row sits underneath the punctuation row
 
 
 def names_for(cls):
-    """Name glyphs: letters A.. in order, the small low ones are . , ? ! -
-    (punctuation ordered left -> right, their y positions differ)."""
-    punct = sorted((i for i, b in enumerate(cls) if b[1] > PUNCT_ROW_Y),
-                   key=lambda i: cls[i][0])
-    name_of = dict(zip(punct, PUNCT))
-    if len(punct) != len(PUNCT):
-        print('WARNING: expected %d punctuation glyphs below y=%s, found %d'
-              % (len(PUNCT), PUNCT_ROW_Y, len(punct)), file=sys.stderr)
+    """Name glyphs: letters A.. in order; the small low ones are punctuation
+    in two rows: .,?!'"<> then -+= underneath."""
+    punct1 = [i for i, b in enumerate(cls) if PUNCT_ROW_Y < b[1] < STROKE_ROW_Y]
+    punct2 = [i for i, b in enumerate(cls) if b[1] >= STROKE_ROW_Y]
+    punct1.sort(key=lambda i: cls[i][0])
+    punct2.sort(key=lambda i: cls[i][0])
+    name_of = dict(list(zip(punct1, PUNCT_ROW1)) + list(zip(punct2, PUNCT_ROW2)))
+    if len(punct1) != len(PUNCT_ROW1):
+        print('WARNING: expected %d punctuation glyphs in row 1, found %d'
+              % (len(PUNCT_ROW1), len(punct1)), file=sys.stderr)
+    if len(punct2) != len(PUNCT_ROW2):
+        print('WARNING: expected %d punctuation glyphs in row 2, found %d'
+              % (len(PUNCT_ROW2), len(punct2)), file=sys.stderr)
     letters = iter(LETTERS)
     return [name_of[i] if i in name_of else next(letters) for i in range(len(cls))]
 
@@ -191,7 +204,7 @@ def fmt(v):
     return '0' if s in ('-0', '') else s
 
 
-def subpath_to_d(sub):
+def subpath_to_d(sub, close=True):
     out = []
     for c in sub:
         kind = c[0]
@@ -210,17 +223,21 @@ def subpath_to_d(sub):
         elif kind == 'A':
             out.append('A %s %s %s %d %d %s %s' % (fmt(c[1]), fmt(c[2]), fmt(c[3]),
                                                    c[4], c[5], fmt(c[6]), fmt(c[7])))
-    return ' '.join(out) + ' Z'
+    return ' '.join(out) + (' Z' if close else '')
 
 
-def write_glyph(path, subpaths, box, pad=0.0):
-    d = ' '.join(subpath_to_d(s) for s in subpaths)
+def write_glyph(path, subpaths, box, stroke=False, pad=0.0):
+    d = ' '.join(subpath_to_d(s, close=not stroke) for s in subpaths)
     w = box[2] - box[0] + 2 * pad
     h = box[3] - box[1] + 2 * pad
+    if stroke:
+        paint = 'fill="none" stroke="#000000" stroke-width="1" stroke-linecap="round"'
+    else:
+        paint = 'fill="#000000" fill-rule="evenodd"'
     svg = ('<svg xmlns="http://www.w3.org/2000/svg" width="%s" height="%s" '
-           'viewBox="%s %s %s %s"><path d="%s" fill="#000000" fill-rule="evenodd"/>'
+           'viewBox="%s %s %s %s"><path d="%s" %s/>'
            '</svg>\n' % (fmt(w), fmt(h), fmt(box[0] - pad), fmt(box[1] - pad),
-                         fmt(w), fmt(h), d))
+                         fmt(w), fmt(h), d, paint))
     with open(path, 'w') as fh:
         fh.write(svg)
 
@@ -228,18 +245,23 @@ def write_glyph(path, subpaths, box, pad=0.0):
 # ----------------------------------------------------------------------- main
 def collect_glyphs(root, group_id):
     """Each direct child of <g id="group_id"> is one glyph:
-    a <path> child, or a nested <g> whose paths together form the glyph
-    (e.g. g425 = '?' shape + dot). Returns a list of subpath-lists."""
+    a <path> child, or a nested <g> whose paths together form the glyph.
+    Open stroked paths (the - + = row) are kept too; consecutive open-path
+    glyphs whose x-ranges overlap are merged into one glyph ('+' and '=' are
+    each two separate line paths). Returns (glyphs, strokes) where strokes[i]
+    is True if glyph i is a stroke (fill:none) glyph."""
     for g in root.iter('{http://www.w3.org/2000/svg}g'):
         if g.get('id') == group_id:
-            glyphs = []
+            glyphs, strokes = [], []
             for child in g:
                 tag = child.tag.split('}')[-1]
                 if tag == 'path' and child.get('d'):
                     subs, closed = parse_path(child.get('d'))
-                    if not any(closed):
-                        continue          # leftover stroked open line, not a glyph
+                    if not subs:
+                        continue
+                    is_stroke = not any(closed)   # fill:none line, no Z anywhere
                     glyphs.append(subs)
+                    strokes.append(is_stroke)
                 elif tag == 'g':
                     subs = []
                     for p in child.iter('{http://www.w3.org/2000/svg}path'):
@@ -248,8 +270,20 @@ def collect_glyphs(root, group_id):
                             subs.extend(s)
                     if subs:
                         glyphs.append(subs)
-            if glyphs:
-                return glyphs
+                        strokes.append(False)
+            # merge stroke glyphs whose x-ranges overlap (parts of one glyph)
+            merged = []
+            for i, sub in enumerate(glyphs):
+                if merged and strokes[i] and merged[-1][2]:
+                    prev, _, pstroke = merged[-1]
+                    pb = union_box([bbox(s) for s in prev])
+                    cb = union_box([bbox(s) for s in sub])
+                    if cb[0] <= pb[2] and pb[0] <= cb[2]:
+                        merged[-1] = (prev + sub, True, True)
+                        continue
+                merged.append((sub, strokes[i], strokes[i]))
+            if merged:
+                return [m[0] for m in merged], [m[1] for m in merged]
     raise SystemExit('no glyphs found in <g id="%s">' % group_id)
 
 
@@ -263,20 +297,68 @@ def main():
     ap.add_argument('--group', default='g426',
                     help='id of the group holding the glyphs (default: %(default)s)')
     ap.add_argument('--dry-run', action='store_true', help='only print what would be written')
+    ap.add_argument('--only-digits', action='store_true',
+                    help='skip the letters/punctuation set, only split digits')
     args = ap.parse_args()
 
     root = ET.parse(args.src).getroot()
-    glyphs = collect_glyphs(root, args.group)
+
+    dglyphs = []
+    for g in root.iter('{http://www.w3.org/2000/svg}g'):
+        if g.get('id') == DIGIT_GROUP:
+            for p in g:
+                if p.tag.split('}')[-1] == 'path' and p.get('d'):
+                    subs, _ = parse_path(p.get('d'))
+                    if subs:
+                        dglyphs.append(subs)
+            break
+    if not dglyphs:
+        raise SystemExit('no <g id="%s"> found' % DIGIT_GROUP)
+
+    dboxes = glyph_bboxes(dglyphs)
+    dorder = sorted(range(len(dglyphs)),
+                    key=lambda i: (round(dboxes[i][1] / 20), dboxes[i][0]))
+
+    if args.only_digits:
+        size = max(b[2] - b[0] for b in dboxes)
+        args.group = DIGIT_GROUP
+        glyphs, boxes, ordered = dglyphs, dboxes, dorder
+        ordered = list(ordered)
+        cls = [boxes[i] for i in ordered]
+        names = list(DIGITS)
+        n_expected = len(DIGITS)
+        print('group %s: %d digits' % (DIGIT_GROUP, len(ordered)))
+        if len(ordered) != n_expected:
+            print('NOTE: found %d digits (a full set would have %d)'
+                  % (len(ordered), n_expected), file=sys.stderr)
+        letter_boxes = cls
+        baseline = max(b[3] for b in cls)
+        size = 30.0   # digit art is half the 30-unit letter width, 30 tall
+        for k, i in enumerate(ordered):
+            name = names[k]
+            fname = FILE_FOR[name] + '.svg'
+            b = boxes[i]
+            cx, cy = (b[0] + b[2]) / 2, (b[1] + b[3]) / 2
+            uniform = (cx - size / 2, cy - size / 2, cx + size / 2, cy + size / 2)
+            print('  %-9s %-12s bbox=%s subpaths=%d'
+                  % (name, fname, [round(v, 1) for v in b], len(glyphs[i])))
+            if not args.dry_run:
+                write_glyph(os.path.join(args.out, fname), glyphs[i], uniform)
+        if not args.dry_run:
+            print('digits written to %s' % args.out)
+        return
+
+    glyphs, strokes = collect_glyphs(root, args.group)
     boxes = glyph_bboxes(glyphs)
     ordered = reading_order(glyphs, boxes)
 
     cls = [boxes[i] for i in ordered]
     names = names_for(cls)
+    n_expected = len(LETTERS) + len(PUNCT_ROW1) + len(PUNCT_ROW2)
     print('group %s: %d glyphs' % (args.group, len(ordered)))
-    if len(ordered) != len(LETTERS) + len(PUNCT):
-        print('NOTE: found %d glyphs (a full sheet would have %d) - a letter is missing, '
-              'names after the gap will be off by one'
-              % (len(ordered), len(LETTERS) + len(PUNCT)), file=sys.stderr)
+    if len(ordered) != n_expected:
+        print('NOTE: found %d glyphs (a full sheet would have %d)'
+              % (len(ordered), n_expected), file=sys.stderr)
 
     if not args.dry_run:
         os.makedirs(args.out, exist_ok=True)
@@ -303,10 +385,47 @@ def main():
         print('  %-9s %-12s bbox=%s subpaths=%d'
               % (name, fname, [round(v, 1) for v in boxes[i]], len(glyphs[i])))
         if not args.dry_run:
-            write_glyph(os.path.join(args.out, fname), glyphs[i], uniform)
+            write_glyph(os.path.join(args.out, fname), glyphs[i], uniform,
+                        stroke=strokes[i])
 
     if not args.dry_run:
         print('written to %s' % args.out)
+
+    # ---- digits (second set): each direct child path of the digit group is
+    # one filled glyph (stroke-to-path'd). Uniform 30x30 box like the letters;
+    # the art itself is only half the width. Named in reading order 1..5 / 6..0.
+    droot = None
+    for g in root.iter('{http://www.w3.org/2000/svg}g'):
+        if g.get('id') == DIGIT_GROUP:
+            droot = g
+            break
+    if droot is None:
+        raise SystemExit('no <g id="%s"> found' % DIGIT_GROUP)
+    dglyphs = []
+    for p in droot:
+        if p.tag.split('}')[-1] == 'path' and p.get('d'):
+            subs, _ = parse_path(p.get('d'))
+            if subs:
+                dglyphs.append(subs)
+    dboxes = glyph_bboxes(dglyphs)
+    dorder = sorted(range(len(dglyphs)),
+                    key=lambda i: (round(dboxes[i][1] / 20), dboxes[i][0]))
+    print('group %s: %d digits' % (DIGIT_GROUP, len(dorder)))
+    if len(dorder) != len(DIGITS):
+        print('WARNING: expected %d digits, found %d' % (len(DIGITS), len(dorder)),
+              file=sys.stderr)
+    for k, i in enumerate(dorder):
+        name = DIGITS[k]
+        b = dboxes[i]
+        cx, cy = (b[0] + b[2]) / 2, (b[1] + b[3]) / 2
+        uniform = (cx - size / 2, cy - size / 2, cx + size / 2, cy + size / 2)
+        print('  %-9s %-12s bbox=%s subpaths=%d'
+              % (name, FILE_FOR[name] + '.svg', [round(v, 1) for v in b], len(dglyphs[i])))
+        if not args.dry_run:
+            write_glyph(os.path.join(args.out, FILE_FOR[name] + '.svg'),
+                        dglyphs[i], uniform)
+    if not args.dry_run:
+        print('digits written to %s' % args.out)
 
 
 if __name__ == '__main__':
