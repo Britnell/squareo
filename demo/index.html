@@ -41,7 +41,7 @@
             .display {
                 font-family: var(--display);
                 font-weight: 400;
-                line-height: 1.05;
+                line-height: normal;
                 margin: 0;
             }
             .label {
@@ -141,6 +141,7 @@
             }
             .stack .why .display {
                 display: inline-block;
+                line-height: normal;
                 background: var(--accent);
                 padding: 0.1em 0.2em 0.05em;
             }
@@ -171,7 +172,7 @@
                 aspect-ratio: 1;
                 display: grid;
                 place-items: center;
-                font: 400 4rem/1 var(--display);
+                font: 400 4rem/normal var(--display);
                 border-right: 2px solid var(--line);
                 border-bottom: 2px solid var(--line);
                 transition:
@@ -279,7 +280,7 @@
                 width: 240px;
             }
             #try {
-                font: 400 6rem/1.1 var(--display);
+                font: 400 6rem/normal var(--display);
                 max-width: 100%;
                 overflow-wrap: anywhere;
                 min-height: 1.2em;

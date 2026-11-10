@@ -57,6 +57,16 @@ font.fullname   = "AllCaps Regular"
 font.version    = "1.0"
 font.copyright  = ""
 
+# Line metrics: the glyphs have no descenders (comma just touches the
+# baseline), so don't reserve DESCENT (250) of empty space below each line.
+# Keep the top gap (ascent) as-is; tighten the bottom.
+# FontForge only honours the vertical-metrics fields inconsistently, so the
+# authoritative hhea/OS-2 values are written by install-font.sh afterwards.
+font.hhea_ascent = ASCENT - 5
+font.hhea_descent = 0
+font.hhea_linegap = 97
+font.os2_typoascent_add = 0
+
 here = os.path.dirname(os.path.abspath(__file__))
 missing = []
 VB_LETTER = None  # viewBox size of a letter SVG (full art unit scale); set below

@@ -25,6 +25,16 @@ feature kern {
 } kern;
 '''
 addOpenTypeFeaturesFromString(f, fea)
+
+# line metrics: no descenders in this font, so don't reserve space below the
+# baseline. Keep the top gap as designed (ASCENT 750), drop descent to 25.
+# gap between lines must equal the letter gap (SIDE*2 = 100), so the
+# metrics sum to cap height (742/745) + 100
+f['hhea'].ascent, f['hhea'].descent, f['hhea'].lineGap = 745, 0, 97
+o = f['OS/2']
+o.sTypoAscender, o.sTypoDescender, o.sTypoLineGap = 745, 0, 97
+o.usWinAscent, o.usWinDescent = 842, 0
+o.fsSelection |= 1 << 7  # USE_TYPO_METRICS
 f.save(path)
 print("kern pairs compiled into", path)
 PY
