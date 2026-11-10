@@ -37,12 +37,13 @@ letters = {
 # punctuation: name -> codepoint
 punctuation = {
     "exclamation": 0x0021,
+    "quotedbl":   0x0022,
+    "apostrophe": 0x0027,
     "hyphen":     0x002D,
     "comma":    0x002C,
     "period":   0x002E,
     "question": 0x003F,
 }
-
 SPACE_WIDTH = None   # set below: half the average letter advance width
 font = fontforge.font()
 font.encoding = "UnicodeFull"
@@ -86,7 +87,7 @@ def art_scale(path):
 
 VB_LETTER = vb_size(os.path.join(here, "A.svg"))  # reference art-unit scale
 
-def import_glyph(codepoint, path, s=SCALE, width=None, vcenter=None):
+def import_glyph(codepoint, path, s=SCALE, width=None, vcenter=None, top=False):
     """Import an SVG into the glyph at codepoint, then position it.
     vcenter: if set, center the art vertically at this height (e.g. hyphen).
     """
@@ -101,6 +102,9 @@ def import_glyph(codepoint, path, s=SCALE, width=None, vcenter=None):
     # down onto the baseline 0.
     dx = SIDE - xmin
     dy = (-ymin) if vcenter is None else (vcenter - (ymin + ymax) / 2)
+    if top:
+        dy = ASCENT - ymax
+        dx = 0 if width is not None else dx
     glyph.transform((1, 0, 0, 1, dx, dy))
     if width is not None:
         # fixed advance (e.g. half-width punctuation), glyph centered in it
@@ -136,9 +140,23 @@ for name, cp in sorted(punctuation.items(), key=lambda kv: kv[1]):
     if name in HALF_WIDTH_PUNCT:
         import_glyph(cp, svg, s=SCALE * art_scale(svg), width=HALF,
                     vcenter=ASCENT / 2 if name == "hyphen" else None)
+    elif name in ("apostrophe", "quotedbl"):
+        # hanging punctuation: top edge at cap height, advance like comma
+        import_glyph(cp, svg, s=SCALE * art_scale(svg), top=True)
     else:
         # narrow glyphs (! , .): advance fits the art + normal side bearings
         import_glyph(cp, svg, s=SCALE * art_scale(svg))
+
+# smart quotes: closing quotes (’ ”) reuse the ' / " shapes as-is;
+# opening quotes (‘ “) are the same shapes mirrored horizontally.
+for alias, src, mirror in ((0x2018, 0x0027, True), (0x2019, 0x0027, False),
+                           (0x201C, 0x0022, True), (0x201D, 0x0022, False)):
+    a = font.createChar(alias)
+    a.addReference(font[src].glyphname)
+    a.width = font[src].width
+    if mirror:
+        # x' = -x + width: mirror about the glyph's advance center
+        a.transform((-1, 0, 0, 1, a.width, 0))
 
 # space: empty glyph, width = half the average letter advance width
 space = font.createChar(0x0020)
@@ -160,6 +178,23 @@ if missing:
     print("WARNING: missing SVG files (glyphs skipped):")
     for m in missing:
         print("  " + m)
+
+# Extra unencoded glyphs: mirrored copies of A and V (PUA), for later use
+# in contextual rules. No OpenType feature attached yet.
+for cp, name in ((0xE000, "A.mirrored"), (0xE001, "V.mirrored")):
+    m = font.createChar(cp, name)
+    m.addReference(font[ord(name[0])].glyphname)
+    m.width = font[ord(name[0])].width
+    m.transform((-1, 0, 0, 1, m.width, 0))
+
+# Ligature glyph "AV" (PUA 0xE002): both letters replaced by their mirrored
+# copies, kerned like the V/A pair (a mirrored "V A" has the same clashing
+# slants, so it needs the same pull-in).
+avw = font[0x0041].width
+av = font.createChar(0xE002, "AV")
+av.width = avw * 2 + KERN
+av.addReference("A.mirrored", (1, 0, 0, 1, 0, 0))
+av.addReference("V.mirrored", (1, 0, 0, 1, avw + KERN, 0))
 
 sfd = os.path.join(here, "allcaps.sfd")
 ttf = os.path.join(here, "squareo.ttf")

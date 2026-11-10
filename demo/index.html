@@ -97,7 +97,7 @@
             }
             .hero .display {
                 font-size: min(10vw, 7.2rem);
-                letter-spacing: -0.02em;
+                /* no letter-spacing: Blink disables liga/calt when it is set */
             }
             .hero .tagline {
                 margin: 1.5rem 0 0;
@@ -136,7 +136,7 @@
                 text-align: right;
             }
             .stack .quote .display {
-                font-size: clamp(2.75rem, 10vw, 7.5rem);
+                font-size: clamp(2.75rem, 12vw, 7.5rem);
                 margin: 0;
             }
             .stack .why .display {
@@ -395,7 +395,7 @@
 
         <div class="hero">
             <div class="wrap">
-                <h1 class="display">captivating geometry</h1>
+                <h1 class="display">geometric squared exponent</h1>
                 <p class="tagline">Squareo - my first font</p>
                 <p class="scroll label">Poster / Headings / Quotes</p>
             </div>
@@ -406,10 +406,7 @@
                 <div class="stack">
                     <div>
                         <span class="label">01 / Concept</span>
-                        <p>
-                            Every letter is built from squares on one strict
-                            grid.
-                        </p>
+                        <p>My first font. Purely geometric in a strict grid.</p>
                     </div>
                     <div class="quote why">
                         <p class="display">
@@ -420,32 +417,32 @@
                     <div>
                         <span class="label">02 / Pattern</span>
                         <p>
-                            Stack a few lines and the letters lock together into
-                            a dense geometric pattern. Almost decorative.
+                            lines of text turn into a busy geometric pattern
+                            that becomes almost decorative
                         </p>
                     </div>
                     <div class="quote">
                         <h2 class="display">
-                            Don't Believe everything you think
+                            “Don’t Believe everything you think”
                         </h2>
                     </div>
                     <div>
                         <span class="label">03 / Use</span>
                         <p>
-                            Readable if you squint. Somewhere between a typeface
-                            and a pattern.
+                            An aesthetic, abstract font that aims to still be
+                            vaguely readable
                         </p>
                     </div>
                     <div>
                         <span class="label">04 / Spacing</span>
                         <p>
-                            Monospaced, except for a narrow I. AV gets its own
-                            kerning.
+                            Monospaced apart from a narrow I <br />
+                            custom kerning for AV
                         </p>
                     </div>
                     <div class="set">
                         <span class="label">05 / Set</span>
-                        <p class="mono">A–Z&nbsp; ! ? , . -</p>
+                        <p class="mono">A–Z&nbsp; ! ? , . - ‘ ’ “ ”</p>
                     </div>
                 </div>
             </div>
@@ -454,7 +451,7 @@
         <section id="glyphs">
             <div class="wrap">
                 <div class="label">
-                    <span>The alphabet</span><span>31 glyphs</span>
+                    <span>The alphabet</span><span>37 glyphs</span>
                 </div>
                 <div class="grid" id="grid"></div>
             </div>
@@ -568,7 +565,7 @@
 
         <script>
             const grid = document.getElementById("grid");
-            "ABCDEFGHIJKLMNOPQRSTUVWXYZ!?,.-".split("").forEach((c, i) => {
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZ!?,.-'"‘’“”".split("").forEach((c, i) => {
                 const d = document.createElement("div");
                 d.textContent = c;
                 if ((i + Math.floor(i / 6)) % 5 === 0) d.className = "inv";

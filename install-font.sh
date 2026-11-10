@@ -23,6 +23,21 @@ feature kern {
     pos v A -622;
     pos v a -622;
 } kern;
+# NOTE: `calt`, not `liga` — Chrome disables liga/dlig when letter-spacing
+# is applied, which the demo headings use. calt survives it.
+feature calt {
+    sub A V by AV;
+    sub a v by AV;
+    sub a V by AV;
+    sub A v by AV;
+} calt;
+# same substitution under liga as well, for renderers/users that turn calt off
+feature liga {
+    sub A V by AV;
+    sub a v by AV;
+    sub a V by AV;
+    sub A v by AV;
+} liga;
 '''
 addOpenTypeFeaturesFromString(f, fea)
 

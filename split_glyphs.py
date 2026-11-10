@@ -27,8 +27,8 @@ import sys
 import xml.etree.ElementTree as ET
 
 LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-PUNCT = ['.', ',', '?', '!', '-']
-FILE_FOR = {'.': 'period', ',': 'comma', '?': 'question', '!': 'exclamation', '-': 'hyphen'}
+PUNCT = ['.', ',', '?', '!', '-', "'", '"']
+FILE_FOR = {'.': 'period', ',': 'comma', '?': 'question', '!': 'exclamation', '-': 'hyphen', "'": 'apostrophe', '"': 'quotedbl'}
 
 NUM = r'-?\d*\.?\d+(?:[eE][-+]?\d+)?'
 TOKEN = re.compile(r'[MmLlHhVvCcSsQqTtAaZz]|' + NUM)
