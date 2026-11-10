@@ -119,18 +119,38 @@
             .hero .scroll:hover {
                 color: var(--accent);
             }
-            .meta {
-                display: grid;
-                grid-template-columns: 1fr 1fr 1fr;
-                gap: 1.5rem;
+            .stack {
+                display: flex;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 2rem;
             }
-            .meta p {
-                margin: 0.5rem 0 0;
+            .stack .label {
+                display: inline-block;
+                background: var(--ink);
+                color: var(--paper);
+                padding: 0.3rem 0.5rem;
             }
-            @media (max-width: 700px) {
-                .meta {
-                    grid-template-columns: 1fr;
-                }
+            .stack p {
+                margin: 0.75rem 0 0;
+                max-width: 36ch;
+                font-size: 1.35rem;
+                line-height: 1.4;
+            }
+            .stack .quote {
+                margin: 1.5rem 0;
+            }
+            .stack .quote .display {
+                font-size: clamp(2.75rem, 10vw, 7.5rem);
+                margin: 0;
+            }
+            .stack .why .display {
+                display: inline-block;
+                background: var(--accent);
+                padding: 0.1em 0.2em 0.05em;
+            }
+            .stack .set .mono {
+                font-size: 1.75rem;
             }
 
             /* glyph grid */
@@ -192,6 +212,18 @@
             .pair .display {
                 font-size: clamp(2.5rem, 7vw, 5rem);
             }
+            .pair.stacked {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+            .pair.stacked .display {
+                font-size: clamp(2rem, 6vw, 4.5rem);
+                max-width: 20ch;
+            }
+            .pair.stacked > div {
+                justify-self: end;
+                max-width: 52ch;
+            }
             .pair p {
                 margin: 0 0 1rem;
                 max-width: 52ch;
@@ -230,22 +262,6 @@
             .ladder .display {
                 white-space: nowrap;
                 font-size: var(--s);
-            }
-
-            /* heading over text */
-            .quote-body {
-                max-width: 900px;
-                margin: 0 auto;
-                text-align: center;
-            }
-            .quote-body .display {
-                font-size: clamp(2rem, 6.5vw, 5rem);
-                margin-bottom: 1.5rem;
-            }
-            .quote-body p {
-                margin: 0 auto;
-                max-width: 46ch;
-                font-size: 1.25rem;
             }
 
             /* accent block */
@@ -320,8 +336,11 @@
                 .hero .scroll {
                     padding: 0 1rem;
                 }
-                .meta {
-                    gap: 1rem;
+                .stack {
+                    gap: 1.5rem;
+                }
+                .stack p {
+                    font-size: 1.1rem;
                 }
                 section {
                     padding: 2.5rem 0;
@@ -394,30 +413,45 @@
 
         <section class="about">
             <div class="wrap">
-                <div class="meta">
+                <div class="stack">
                     <div>
                         <span class="label">01 / Concept</span>
                         <p>My first font. Purely geometric in a strict grid.</p>
-                        <p class="squareo">WHY NOT ?</p>
-
-                        lines of text to turn into a busy geometric pattern that
-                        becomes almost decorative
+                    </div>
+                    <div class="quote why">
+                        <p class="display">
+                            WHY <br />
+                            NOT
+                        </p>
+                    </div>
+                    <div>
+                        <span class="label">02 / Pattern</span>
+                        <p>
+                            lines of text to turn into a busy geometric pattern
+                            that becomes almost decorative
+                        </p>
+                    </div>
+                    <div class="quote">
                         <h2 class="display">
                             Don't Believe everything you think
                         </h2>
-                        <span class="label">02 / Use</span>
+                    </div>
+                    <div>
+                        <span class="label">03 / Use</span>
                         <p>
                             Vaguely readable, an aesthetic font that is not
                             purely abstract
                         </p>
                     </div>
-
                     <div>
-                        <span class="label">02 / Use</span>
-
-                        Monospaced apart from a narrow I, with custom kerning
-                        for AV.
-                        <span class="label">03 / Set</span>
+                        <span class="label">04 / Spacing</span>
+                        <p>
+                            Monospaced apart from a narrow I, with custom
+                            kerning for AV.
+                        </p>
+                    </div>
+                    <div class="set">
+                        <span class="label">05 / Set</span>
                         <p class="mono">A–Z&nbsp; ! ? , . -</p>
                     </div>
                 </div>
@@ -439,8 +473,11 @@
                     <span>In context</span
                     ><span>Squareo + Space Grotesk + JetBrains Mono</span>
                 </div>
-                <div class="pair">
-                    <h2 class="display">Loud on top, quiet underneath.</h2>
+                <div class="pair stacked">
+                    <h2 class="display">
+                        I started out with nothing, and i still have most of it
+                        left
+                    </h2>
                     <div>
                         <p class="lead">
                             Let Squareo do the shouting. Keep everything else
